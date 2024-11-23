@@ -1,0 +1,31 @@
+*villm.txt*     Plugin for interacting with LLMs from vim
+
+CONFIGURATION
+=========================================================
+The following global variables can be set to configure the plugin:
+
+1. `g:villm_aws_profile` (default: `'default'`)
+   Specifies the AWS profile to use for authentication.
+
+2. `g:villm_aws_bedrock_model_id` (default: `'anthropic.claude-3-5-sonnet-20241022-v2:0'`)
+   Specifies the model to use for Bedrock.
+
+3. `g:villm_aws_region` (default: `'us-west-2'`)
+   Specifies the AWS region for the Bedrock service.
+
+Example configuration in your `vimrc` or `init.vim`:
+
+    let g:villm_aws_profile = 'my-aws-profile'
+    let g:villm_aws_bedrock_model_id = 'anthropic.claude-4-0'
+    let g:villm_aws_region = 'us-east-1'
+
+COMMANDS
+=========================================================
+1. `:LLMChat <prompt>`:
+   Chat with your selected model and get a response. The response will go in
+   the unnamed register `"`.
+2. `:LLMRewrite <prompt>`:
+   Select text and rewrite it using the provided prompt.
+3. `:LLMInsert <prompt>`:
+   Generate a response and insert it at the current cursor position.
+
