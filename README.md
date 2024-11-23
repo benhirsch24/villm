@@ -26,30 +26,6 @@ Yes, there are several ways to auto-wrap lines in Vim:
    - Works the same way as `gq`
    - `gw` followed by a motion
 
-3. Set automatic wrapping width:
-```vim
-:set textwidth=80
-```
-
-4. Format existing text to the textwidth:
-```vim
-:set textwidth=80
-:normal gggqG
-```
-
-5. For automatic wrapping as you type:
-```vim
-:set textwidth=80
-:set formatoptions+=t
-```
-
-The most common quick fix for a single line is to put your cursor on it and type:
-```
-gqq
-```
-
-Or for a paragraph:
-```
-gqap
-```
+...
+etc
 ```
