@@ -55,14 +55,30 @@ import llm
 prompt = vim.eval("a:prompt")
 
 response = llm.call_llm(prompt)
+code = llm.extract_first_code_block(response)
 vim.command(f"let g:llm_response = '{response}'")
+vim.command(f"let g:code = '{code}'")
 EOF
     " Fetch the response stored in the global variable
     let response = g:llm_response
+    let code = g:code
 
     " Insert the response at the current cursor position
     if response !=# 'Error'
-        execute "normal! i" . response
+        " insert code at current position
+        set paste
+        execute "normal! i" . code
+	set nopaste
+
+	" record current window
+	let l:currentWindow=winnr()
+
+	" Paste full response in split
+	execute "new"
+	execute "normal! i" . response
+
+        " Go back to the original window
+        exe l:currentWindow . "wincmd w"
     else
         echo "No valid response available to insert."
     endif
@@ -127,5 +143,20 @@ EOF
     else
         echo "Error in LLM response: " . l:response
     endif
+endfunction
 
+function! OpenPasteAndSwitch()
+    " Save the current buffer name
+    let old_buffer = bufnr('')
+
+    " Open a vertical split and switch to it
+    execute 'vsplit' . old_buffer
+
+    " Paste the current buffer's contents into the new buffer
+    " This assumes the current buffer has text to paste
+    " You might need to adjust this part based on your specific needs
+    execute 'normal! P'
+
+    " Switch back to the original buffer
+    execute 'buffer ' . old_buffer
 endfunction

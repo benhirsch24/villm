@@ -1,3 +1,4 @@
+import re
 import subprocess
 
 def sanitize_for_vim(value):
@@ -14,6 +15,26 @@ def sanitize_for_vim(value):
     sanitized = value.replace("'", "''")
 
     return sanitized
+
+def extract_first_code_block(markdown):
+    # Regular expression pattern to find code blocks
+    code_block_pattern = r'```(.*?)```'
+
+    # Find all matches of the code block pattern
+    matches = re.findall(code_block_pattern, markdown, re.DOTALL)
+
+    common_languages_i_use = ['python', 'rust', 'javascript', 'typescript', 'go', 'c++']
+
+    # Return the first match if available, otherwise return an empty string
+    if matches:
+        block = matches[0].strip()
+        bs = block.split('\n')
+        if bs[0] in common_languages_i_use:
+            bs = bs[1:]
+        return sanitize_for_vim('\n'.join(bs))
+    else:
+        return ""
+
 
 def call_llm(prompt):
     """
@@ -33,7 +54,8 @@ def call_llm(prompt):
         )
 
         # Return the command's output
-        return sanitize_for_vim(result.stdout.strip())
+        res = result.stdout.strip()
+        return sanitize_for_vim(res)
 
     except subprocess.CalledProcessError as e:
         # Handle errors from the `llm` binary
