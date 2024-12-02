@@ -1,11 +1,11 @@
-command! -nargs=* LLMConfig call llm#LLM_Config(<q-args>)
-command! -nargs=* LLMChat call llm#LLM_Chat(<q-args>)
-command! -range -nargs=* LLMExplain call llm#LLM_Explain(<q-args>)
-command! -nargs=* LLMInsert call llm#LLM_Insert(<q-args>)
-command! -nargs=* LLMLastResponse call llm#LLM_LastResponse()
-command! -range -nargs=* LLMRewrite call llm#LLM_Rewrite(<q-args>)
+command! -nargs=* LLMConfig call villm#LLM_Config(<q-args>)
+command! -nargs=* LLMChat call villm#LLM_Chat(<q-args>)
+command! -range -nargs=* LLMExplain call villm#LLM_Explain(<q-args>)
+command! -nargs=* LLMInsert call villm#LLM_Insert(<q-args>)
+command! -nargs=* LLMLastResponse call villm#LLM_LastResponse()
+command! -range -nargs=* LLMRewrite call villm#LLM_Rewrite(<q-args>)
 
-function! llm#LLM_Config(prompt)
+function! villm#LLM_Config(prompt)
     python3 << EOF
 import boto3
 import json
@@ -15,8 +15,8 @@ print('No current real configuration needed')
 EOF
 endfunction
 
-function! llm#LLM_Chat(prompt)
-    let l:python_path = '/Users/ben/.vim/bundle/villm/python'
+function! villm#LLM_Chat(prompt)
+    let l:python_path = g:villm_python_path . '/python'
 
     " Call the python script
     python3 << EOF
@@ -43,8 +43,8 @@ EOF
     endif
 endfunction
 
-function! llm#LLM_Insert(prompt)
-    let l:python_path = '/Users/ben/.vim/bundle/villm/python'
+function! villm#LLM_Insert(prompt)
+    let l:python_path = g:villm_python_path . '/python'
     echo l:python_path
     python3 << EOF
 import sys
@@ -78,7 +78,7 @@ EOF
     endif
 endfunction
 
-function! llm#LLM_LastResponse()
+function! villm#LLM_LastResponse()
     " record current window
     let l:currentWindow=winnr()
 
@@ -90,7 +90,7 @@ function! llm#LLM_LastResponse()
     exe l:currentWindow . "wincmd w"
 endfunction
 
-function! llm#get_visual_selection()
+function! villm#get_visual_selection()
     " Why is this not a built-in Vim script function?!
     let [line_start, column_start] = getpos("'<")[1:2]
     let [line_end, column_end] = getpos("'>")[1:2]
@@ -103,14 +103,14 @@ function! llm#get_visual_selection()
     return join(lines, "\n")
 endfunction
 
-function! llm#LLM_Rewrite(prompt) range
-    let l:selected_text = llm#get_visual_selection()
+function! villm#LLM_Rewrite(prompt) range
+    let l:selected_text = villm#get_visual_selection()
 
     " Prepare the full prompt by combining the user's input with the selected text
     let l:full_prompt = a:prompt . "\n\n" . l:selected_text
 
     let l:script_path = expand('<sfile>:p:h')
-    let l:python_path = '/Users/ben/.vim/bundle/villm/python'
+    let l:python_path = g:villm_python_path . '/python'
 
     " Call the LLM with the full prompt
     python3 << EOF
@@ -155,14 +155,14 @@ EOF
     endif
 endfunction
 
-function! llm#LLM_Explain(prompt) range
-    let l:selected_text = llm#get_visual_selection()
+function! villm#LLM_Explain(prompt) range
+    let l:selected_text = villm#get_visual_selection()
 
     " Prepare the full prompt by combining the user's input with the selected text
     let l:full_prompt = a:prompt . "\n\n" . l:selected_text
 
     let l:script_path = expand('<sfile>:p:h')
-    let l:python_path = '/Users/ben/.vim/bundle/villm/python'
+    let l:python_path = g:villm_python_path . '/python'
 
     " Call the LLM with the full prompt
     python3 << EOF
