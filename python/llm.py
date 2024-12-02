@@ -23,14 +23,12 @@ def extract_first_code_block(markdown):
     # Find all matches of the code block pattern
     matches = re.findall(code_block_pattern, markdown, re.DOTALL)
 
-    common_languages_i_use = ['python', 'rust', 'javascript', 'typescript', 'go', 'c++']
-
     # Return the first match if available, otherwise return an empty string
     if matches:
         block = matches[0].strip()
         bs = block.split('\n')
-        if bs[0] in common_languages_i_use:
-            bs = bs[1:]
+        # The code blocks almost always are in the format ```html so remove that first line
+        bs = bs[1:]
         return sanitize_for_vim('\n'.join(bs))
     else:
         return ""

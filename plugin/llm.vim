@@ -1,6 +1,8 @@
 command! -nargs=* LLMConfig call llm#LLM_Config(<q-args>)
 command! -nargs=* LLMChat call llm#LLM_Chat(<q-args>)
+command! -range -nargs=* LLMExplain call llm#LLM_Explain(<q-args>)
 command! -nargs=* LLMInsert call llm#LLM_Insert(<q-args>)
+command! -nargs=* LLMLastResponse call llm#LLM_LastResponse()
 command! -range -nargs=* LLMRewrite call llm#LLM_Rewrite(<q-args>)
 
 function! llm#LLM_Config(prompt)
@@ -32,6 +34,7 @@ vim.command(f"let g:llm_response = '{response}'")
 EOF
 
     let l:response = g:llm_response
+    let g:last_response = l:response
     if l:response !=# 'Error'
         call setreg('"', l:response)
 	echo l:response
@@ -62,26 +65,29 @@ EOF
     " Fetch the response stored in the global variable
     let response = g:llm_response
     let code = g:code
+    let g:last_response = response
 
     " Insert the response at the current cursor position
     if response !=# 'Error'
         " insert code at current position
         set paste
         execute "normal! i" . code
-	set nopaste
-
-	" record current window
-	let l:currentWindow=winnr()
-
-	" Paste full response in split
-	execute "new"
-	execute "normal! i" . response
-
-        " Go back to the original window
-        exe l:currentWindow . "wincmd w"
+        set nopaste
     else
         echo "No valid response available to insert."
     endif
+endfunction
+
+function! llm#LLM_LastResponse()
+    " record current window
+    let l:currentWindow=winnr()
+
+    " Paste full response in split
+    execute "new"
+    execute "normal! i" . g:last_response
+
+    " Go back to the original window
+    exe l:currentWindow . "wincmd w"
 endfunction
 
 function! llm#get_visual_selection()
@@ -118,11 +124,15 @@ import llm
 prompt = vim.eval("l:full_prompt")
 
 response = llm.call_llm(prompt)
-vim.command(f"let g:llm_response = '{response}'")
+code = llm.extract_first_code_block(response)
+vim.command(f"let g:code = '{code}'")
+vim.command(f"let g:response = '{response}'")
 EOF
 
     " Fetch the response
-    let l:response = l:selected_text . "\n" . g:llm_response
+    let response = g:response
+    let code = g:code
+    let g:last_response = response
 
     if mode() ==# 'v' || mode() ==# 'V'
         let l:start_line = getpos("'<")[1]
@@ -134,29 +144,56 @@ EOF
 
 
     " Replace the selected text with the response
-    if l:response !=# 'Error'
+    if response !=# 'Error'
         " Replace the selected lines with the response
-        call setline(l:start_line, split(l:response, "\n"))
-        if l:end_line > l:start_line
-            call deletebufline('%', l:start_line + 1, l:end_line)
-        endif
+        execute "normal! gvd"
+        set paste
+        execute "normal! i" . code . "\n"
+        set nopaste
     else
         echo "Error in LLM response: " . l:response
     endif
 endfunction
 
-function! OpenPasteAndSwitch()
-    " Save the current buffer name
-    let old_buffer = bufnr('')
+function! llm#LLM_Explain(prompt) range
+    let l:selected_text = llm#get_visual_selection()
 
-    " Open a vertical split and switch to it
-    execute 'vsplit' . old_buffer
+    " Prepare the full prompt by combining the user's input with the selected text
+    let l:full_prompt = a:prompt . "\n\n" . l:selected_text
 
-    " Paste the current buffer's contents into the new buffer
-    " This assumes the current buffer has text to paste
-    " You might need to adjust this part based on your specific needs
-    execute 'normal! P'
+    let l:script_path = expand('<sfile>:p:h')
+    let l:python_path = '/Users/ben/.vim/bundle/villm/python'
 
-    " Switch back to the original buffer
-    execute 'buffer ' . old_buffer
+    " Call the LLM with the full prompt
+    python3 << EOF
+import sys
+import vim
+path = vim.eval('l:python_path')
+sys.path.insert(0, path)
+import llm
+
+# Get prompt from arg
+prompt = vim.eval("l:full_prompt")
+
+response = llm.call_llm(prompt)
+vim.command(f"let g:response = '{response}'")
+EOF
+
+    " Fetch the response
+    let g:last_response = g:response
+
+    " Replace the selected text with the response
+    if g:last_response !=# 'Error'
+        " record current window
+        let l:currentWindow=winnr()
+
+        " Paste full response in split
+        execute "vnew"
+        execute "normal! i" . g:last_response
+
+        " Go back to the original window
+        exe l:currentWindow . "wincmd w"
+    else
+        echo "Error in LLM response: " . l:last_response
+    endif
 endfunction
