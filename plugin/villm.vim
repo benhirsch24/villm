@@ -6,7 +6,7 @@ command! -range -nargs=* LLMRewrite call villm#LLM_Rewrite(<q-args>)
 command! -nargs=* LLMModify call villm#LLM_Modify(<q-args>)
 
 function! villm#LLM_Chat(prompt)
-    let l:python_path = g:villm_python_path . '/python'
+    let l:python_path = g:villm_path . '/python'
 
     " Call the python script
     python3 << EOF
@@ -34,7 +34,7 @@ EOF
 endfunction
 
 function! villm#LLM_Insert(prompt)
-    let l:python_path = g:villm_python_path . '/python'
+    let l:python_path = g:villm_path . '/python'
     python3 << EOF
 import sys
 import vim
@@ -99,7 +99,7 @@ function! villm#LLM_Rewrite(prompt) range
     let l:full_prompt = a:prompt . "\n\n" . l:selected_text
 
     let l:script_path = expand('<sfile>:p:h')
-    let l:python_path = g:villm_python_path . '/python'
+    let l:python_path = g:villm_path . '/python'
 
     " Call the LLM with the full prompt
     python3 << EOF
@@ -151,7 +151,7 @@ function! villm#LLM_Explain(prompt) range
     let l:full_prompt = a:prompt . "\n\n" . l:selected_text
 
     let l:script_path = expand('<sfile>:p:h')
-    let l:python_path = g:villm_python_path . '/python'
+    let l:python_path = g:villm_path . '/python'
 
     " Call the LLM with the full prompt
     python3 << EOF
@@ -190,7 +190,7 @@ endfunction
 function! villm#LLM_Modify(prompt)
     " Get the current buffer content
     let l:current_content = join(getline(1, '$'), "\n")
-    let l:python_path = g:villm_python_path . '/python'
+    let l:python_path = g:villm_path . '/python'
 
     " Call the LLM and get the modified content
     python3 << EOF
@@ -205,7 +205,7 @@ current_content = vim.eval("l:current_content")
 prompt = vim.eval("a:prompt")
 
 # Combine the prompt with the file content
-full_prompt = f"{prompt}\n\n{current_content}"
+full_prompt = f"The following will be instructions for how to modify a code file. Please follow the instructions and then return the new file with modifications in full.\n\n<instructions>{prompt}</instructions>\n\n<current_code>```{current_content}```</current_code>"
 
 # Get the LLM's response
 response = llm.call_llm(full_prompt)
